@@ -620,7 +620,8 @@ td.warn { color:var(--amber); font-weight:600; }
 </main>
 
 <script>
-const DEFAULT_URL = "";
+const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbxkYbOUCEvxFoLxxIzqRqLBMVRaWRc7qwFiSxEIUX9Fjj7_WKqr_UQ7nBsnYvyIA9hY/exec";
+const CACHE_KEY   = "meta_dash_cache";
 
 let raw=[], view=[];
 let chartView='daily', trendView='daily';
@@ -643,30 +644,46 @@ async function saveAndLoad(){
 async function reload(){ await load(getUrl()); }
 
 async function load(url){
-  showMsg('perf-msg','loading'); showMsg('trend-msg','');
+  // 1) 캐시 있으면 즉시 표시
+  const cached = localStorage.getItem(CACHE_KEY);
+  if(cached){
+    try{ applyData(JSON.parse(cached), true); } catch(e){}
+  } else {
+    showMsg('perf-msg','loading');
+    showMsg('trend-msg','');
+  }
+
+  // 2) 백그라운드에서 최신 데이터 fetch
   try {
-    const res=await fetch(url);
+    const res  = await fetch(url);
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json=await res.json();
+    const json = await res.json();
     if(json.error) throw new Error(json.error);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(json));
+    applyData(json, false);
+  } catch(e){
+    if(!cached) showMsg('perf-msg','error', e.message);
+    document.getElementById('sync-time').textContent = '갱신 실패 (캐시 표시 중)';
+  }
+}
 
-    raw=(json.data||[]).map(r=>({
-      ...r,
-      '비용':+r['비용']||0, '매출':+r['매출']||0, 'ROAS':+r['ROAS']||0,
-      '구매':+r['구매']||0, '회원가입':+r['회원가입']||0, '결제시작':+r['결제시작']||0,
-      '클릭':+r['클릭']||0, '노출':+r['노출']||0, 'CTR(%)':+r['CTR(%)']||0, 'CPC':+r['CPC']||0,
-    }));
+function applyData(json, fromCache){
+  raw = (json.data||[]).map(r=>({
+    ...r,
+    '비용':+r['비용']||0, '매출':+r['매출']||0, 'ROAS':+r['ROAS']||0,
+    '구매':+r['구매']||0, '회원가입':+r['회원가입']||0, '결제시작':+r['결제시작']||0,
+    '클릭':+r['클릭']||0, '노출':+r['노출']||0, 'CTR(%)':+r['CTR(%)']||0, 'CPC':+r['CPC']||0,
+  }));
 
-    if(json.updatedAt){
-      const d=new Date(json.updatedAt);
-      document.getElementById('sync-time').textContent=
-        d.toLocaleDateString('ko-KR')+' '+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-    }
+  const syncEl = document.getElementById('sync-time');
+  if(json.updatedAt){
+    const d = new Date(json.updatedAt);
+    syncEl.textContent = d.toLocaleDateString('ko-KR')+' '+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  }
+  if(fromCache) syncEl.textContent += ' ↻';
 
-    // 기본 7일
-    const btn7=document.querySelectorAll('.preset-group .tab-btn')[2];
-    setPreset(7, btn7);
-  } catch(e){ showMsg('camp-msg','error',e.message); }
+  const btn7 = document.querySelectorAll('.preset-group .tab-btn')[2];
+  setPreset(7, btn7);
 }
 
 function setPreset(val,btn){
