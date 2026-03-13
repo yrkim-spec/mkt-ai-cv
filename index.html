@@ -756,7 +756,11 @@ function groupByPeriod(data,mode){
 function renderCharts(){
   const grouped=groupByPeriod(view,chartView);
   const labels=Object.keys(grouped).sort();
-  const fmtL=k=>chartView==='monthly'?k.slice(5)+'월':chartView==='weekly'?k.slice(5)+'주~':k.slice(5);
+  const fmtL = k => {
+    if(chartView==='monthly') return k.slice(5)+'월';
+    if(chartView==='weekly')  return fmtWeekLabel(k);
+    return k.slice(5); // MM-DD
+  };
   const sl=labels.map(fmtL);
 
   mkChart('c-spend','spend',sl,[
@@ -833,9 +837,23 @@ function renderTrendTable(){
     </tr>`).join('');
 }
 
-function fmtPeriodLabel(k,mode){
-  if(mode==='monthly'){const[y,m]=k.split('-');return y+'년 '+parseInt(m)+'월';}
-  if(mode==='weekly'){const end=new Date(k);end.setDate(end.getDate()+6);return k.slice(5)+' ~ '+end.toISOString().slice(5,10);}
+function fmtWeekLabel(k) {
+  // k = "yyyy-MM-dd" (해당 주 월요일)
+  const d   = new Date(k);
+  const mon = parseInt(k.slice(5, 7)); // 월요일의 월
+  // 해당 월의 1일이 무슨 요일인지
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+  // 월요일 기준 그 달의 몇 번째 주인지 계산
+  const firstMon = new Date(firstDay);
+  const fd = firstDay.getDay();
+  firstMon.setDate(firstDay.getDate() + (fd===0 ? 1 : fd===1 ? 0 : 8-fd));
+  const weekNum = Math.floor((d - firstMon) / (7*24*3600*1000)) + 1;
+  return mon + '월 ' + Math.max(weekNum, 1) + '주';
+}
+
+function fmtPeriodLabel(k, mode){
+  if(mode==='monthly'){ const[y,m]=k.split('-'); return y+'년 '+parseInt(m)+'월'; }
+  if(mode==='weekly')  return fmtWeekLabel(k);
   return k;
 }
 
