@@ -438,6 +438,119 @@ td.warn { color:var(--amber); font-weight:600; }
   color:var(--text);
 }
 
+/* ── INSIGHT ────────────────────────────── */
+.insight-toolbar {
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:16px; flex-wrap:wrap;
+}
+
+.btn-insight-run {
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  padding:8px 20px; border-radius:8px;
+  border:none; background:linear-gradient(135deg,#3b6fd4,#6d28d9);
+  color:#fff; cursor:pointer; transition:.2s;
+  margin-left:auto; white-space:nowrap;
+  box-shadow:0 2px 8px rgba(59,111,212,.3);
+}
+.btn-insight-run:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 4px 14px rgba(59,111,212,.4); }
+.btn-insight-run:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+.insight-box {
+  background:var(--panel);
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  min-height:300px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  overflow:hidden;
+}
+
+.insight-placeholder {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:10px; padding:80px 20px;
+  text-align:center;
+}
+.insight-icon { font-size:36px; }
+.insight-msg  { font-family:var(--sans); font-size:15px; font-weight:600; color:var(--text); }
+.insight-sub  { font-family:var(--mono); font-size:11px; color:var(--muted); }
+
+.insight-loading {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:14px; padding:80px 20px;
+}
+.insight-loading-txt {
+  font-family:var(--mono); font-size:11px; color:var(--muted);
+  animation: fadein 1s ease-in-out infinite alternate;
+}
+@keyframes fadein { from{opacity:.3} to{opacity:1} }
+
+.insight-content { padding:28px 32px; }
+
+.insight-period-badge {
+  display:inline-block;
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  padding:3px 10px; border-radius:20px;
+  background:linear-gradient(135deg,#3b6fd4,#6d28d9);
+  color:#fff; margin-bottom:20px;
+}
+
+.insight-section { margin-bottom:24px; }
+
+.insight-section-title {
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:10px;
+  padding-bottom:6px; border-bottom:1.5px solid var(--line);
+}
+
+.insight-cards { display:flex; flex-direction:column; gap:8px; }
+
+.insight-card {
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-left:3px solid var(--ac, var(--blue));
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;
+}
+
+.insight-card-head {
+  font-family:var(--sans); font-size:13px; font-weight:700;
+  color:var(--text); margin-bottom:5px;
+}
+
+.insight-card-body {
+  font-family:var(--sans); font-size:12px;
+  color:var(--sub); line-height:1.7;
+}
+
+.insight-card-action {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  color:var(--blue); margin-top:7px;
+}
+
+/* ── MAIN TAB ───────────────────────────── */
+.main-tab-bar {
+  display: flex; gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 0;
+}
+
+.main-tab {
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  padding: 10px 24px; border-radius: 8px 8px 0 0;
+  border: 1.5px solid transparent; border-bottom: none;
+  background: transparent; color: var(--muted);
+  cursor: pointer; transition: .15s;
+  margin-bottom: -2px;
+}
+.main-tab:hover { color: var(--text); background: var(--panel2); }
+.main-tab.on {
+  background: var(--panel); color: var(--text);
+  border-color: var(--line); border-bottom-color: var(--panel);
+}
+
 /* ── TOGGLE ─────────────────────────────── */
 .toggle-wrap {
   display: flex; align-items: center; gap: 6px;
@@ -515,7 +628,15 @@ td.warn { color:var(--amber); font-weight:600; }
 <!-- MAIN -->
 <main>
 
-  <!-- 채널 필터 -->
+  <!-- 메인 탭: 광고성과 / 기여도 / 인사이트 -->
+  <div class="main-tab-bar">
+    <button class="main-tab on" data-view="ads"     onclick="setMainView(this)">📊 광고 성과</button>
+    <button class="main-tab"   data-view="attr"    onclick="setMainView(this)">🔍 기여도 분석</button>
+    <button class="main-tab"   data-view="insight" onclick="setMainView(this)">✨ AI 인사이트</button>
+  </div>
+
+  <!-- 광고성과 뷰 -->
+  <div id="view-ads">
   <div class="channel-bar">
     <button class="channel-btn on" data-ch="all"  onclick="setChannel(this)">
       <span class="ch-icon">◈</span> 전체
@@ -745,6 +866,91 @@ td.warn { color:var(--amber); font-weight:600; }
     </div>
   </div>
 
+  </div><!-- /view-ads -->
+  <div id="view-attr" style="display:none">
+
+    <!-- 기여도 필터 -->
+    <div class="filter-bar" style="margin-bottom:12px">
+      <span class="filter-label">터치</span>
+      <div class="preset-group">
+        <button class="tab-btn on" data-t="first" onclick="setAttrTouch(this)">퍼스트터치</button>
+        <button class="tab-btn"   data-t="last"  onclick="setAttrTouch(this)">라스트터치</button>
+      </div>
+      <span class="sec-badge" style="margin-left:12px" id="attr-cnt"></span>
+    </div>
+
+    <!-- 채널별 퍼스트 vs 라스트 비교 (핵심) -->
+    <div class="section">
+      <div class="sec-head"><span class="sec-title">채널별 퍼스트 vs 라스트터치 비교</span></div>
+      <div class="chart-box" style="margin-bottom:12px">
+        <div class="chart-title">퍼스트터치 vs 라스트터치 구매건수</div>
+        <div class="chart-area" style="height:260px"><canvas id="c-attr-compare"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 전환 경로 + 플랫폼 -->
+    <div class="chart-2col" style="margin-bottom:12px">
+      <div class="section" style="margin-bottom:0">
+        <div class="sec-head"><span class="sec-title">전환 경로 TOP 10</span></div>
+        <div class="panel">
+          <div class="tbl-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>퍼스트</th>
+                  <th>라스트</th>
+                  <th class="r">건수</th>
+                  <th class="r">매출</th>
+                  <th class="r">비율</th>
+                </tr>
+              </thead>
+              <tbody id="attr-path-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="section" style="margin-bottom:0">
+        <div class="sec-head"><span class="sec-title">플랫폼별 기여도</span></div>
+        <div class="chart-box">
+          <div class="chart-title">Web vs App 구매 비중</div>
+          <div class="chart-area"><canvas id="c-attr-platform"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 소요일 분포 -->
+    <div class="section">
+      <div class="sec-head"><span class="sec-title">구매까지 소요일 분포</span></div>
+      <div class="chart-box">
+        <div class="chart-title">가입 → 구매 소요일</div>
+        <div class="chart-area"><canvas id="c-attr-days"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /view-attr -->
+
+  <!-- 인사이트 뷰 -->
+  <div id="view-insight" style="display:none">
+    <div class="insight-toolbar">
+      <div class="preset-group">
+        <button class="tab-btn on" data-p="1"  onclick="setInsightPeriod(this)">어제</button>
+        <button class="tab-btn"   data-p="7"  onclick="setInsightPeriod(this)">최근 7일</button>
+        <button class="tab-btn"   data-p="14" onclick="setInsightPeriod(this)">최근 14일</button>
+        <button class="tab-btn"   data-p="30" onclick="setInsightPeriod(this)">최근 30일</button>
+      </div>
+      <button class="btn-insight-run" id="btn-run-insight" onclick="runInsight()">
+        ✨ AI 인사이트 생성
+      </button>
+    </div>
+    <div id="insight-output" class="insight-box">
+      <div class="insight-placeholder">
+        <div class="insight-icon">✨</div>
+        <div class="insight-msg">기간을 선택하고 <strong>AI 인사이트 생성</strong>을 눌러주세요</div>
+        <div class="insight-sub">현재 광고 성과를 분석해 마케팅 액션 인사이트를 제안해드립니다</div>
+      </div>
+    </div>
+  </div><!-- /view-insight -->
+
 </main>
 
 <script>
@@ -757,6 +963,7 @@ let trendSort={key:'spend',asc:false};
 let campSort={key:'spend',num:true,asc:false};
 let adSort={key:'spend',num:true,asc:false};
 let charts={};
+let attrRaw=[], attrTouch='first';
 
 (async()=>{ const url=getUrl(); if(!url){openModal();return;} await load(url); })();
 setInterval(()=>reload(), 60*60*1000);
@@ -801,6 +1008,13 @@ function applyData(json, fromCache){
     '비용':+r['비용']||0, '매출':+r['매출']||0, 'ROAS':+r['ROAS']||0,
     '구매':+r['구매']||0, '회원가입':+r['회원가입']||0, '결제시작':+r['결제시작']||0,
     '클릭':+r['클릭']||0, '노출':+r['노출']||0, 'CTR(%)':+r['CTR(%)']||0, 'CPC':+r['CPC']||0,
+  }));
+
+  // Attribution 데이터 파싱
+  attrRaw = (json.attribution||[]).map(r=>({
+    ...r,
+    '매출': +r['매출']||0,
+    '소요일': +r['소요일']||0,
   }));
 
   const syncEl = document.getElementById('sync-time');
@@ -904,7 +1118,7 @@ function applyRange(){
   render();
 }
 
-function render(){ renderKPI(); renderCharts(); renderTrendTable(); renderFunnel(); renderPerfTable(); renderChannelCompare(); }
+function render(){ renderKPI(); renderCharts(); renderTrendTable(); renderFunnel(); renderPerfTable(); renderChannelCompare(); renderAttribution(); }
 
 function renderKPI(){
   const spend=Σ(view,'비용'), rev=Σ(view,'매출');
@@ -1159,6 +1373,384 @@ function renderPerfTable(){
 function sortPerf(key){
   perfSort.asc = perfSort.key===key ? !perfSort.asc : false;
   perfSort.key = key; renderPerfTable();
+}
+
+let insightPeriod = 1;
+
+function setMainView(btn){
+  document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const v = btn.dataset.view;
+  document.getElementById('view-ads').style.display     = v==='ads'     ? '' : 'none';
+  document.getElementById('view-attr').style.display    = v==='attr'    ? '' : 'none';
+  document.getElementById('view-insight').style.display = v==='insight' ? '' : 'none';
+  if (v==='attr') renderAttribution();
+}
+
+function setInsightPeriod(btn){
+  btn.closest('.preset-group').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  insightPeriod = parseInt(btn.dataset.p);
+}
+
+async function runInsight(){
+  const btn = document.getElementById('btn-run-insight');
+  btn.disabled = true;
+  btn.textContent = '분석 중...';
+
+  const output = document.getElementById('insight-output');
+  output.innerHTML = `<div class="insight-loading"><div class="spin"></div><div class="insight-loading-txt">광고 데이터를 분석하고 있습니다...</div></div>`;
+
+  try {
+    // 기간 데이터 준비
+    const base = new Date(); base.setDate(base.getDate()-1);
+    const fmt  = d => d.toISOString().slice(0,10);
+    const to   = fmt(base);
+    const from = insightPeriod === 1 ? to : (() => { const d=new Date(base); d.setDate(d.getDate()-(insightPeriod-1)); return fmt(d); })();
+
+    const periodData = raw.filter(r => r['날짜'] >= from && r['날짜'] <= to);
+    const attrData   = attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to);
+
+    // 채널별 집계
+    const byChannel = {};
+    periodData.forEach(r => {
+      const ch = r['채널'] || 'Meta';
+      if (!byChannel[ch]) byChannel[ch] = { spend:0, rev:0, pur:0, reg:0, clk:0, install:0 };
+      byChannel[ch].spend   += r['비용']||0;
+      byChannel[ch].rev     += r['매출']||0;
+      byChannel[ch].pur     += r['구매']||0;
+      byChannel[ch].reg     += r['회원가입']||0;
+      byChannel[ch].clk     += r['클릭']||0;
+      byChannel[ch].install += r['설치']||0;
+    });
+
+    // 캠페인별 TOP (비용 기준)
+    const byCamp = {};
+    periodData.forEach(r => {
+      const k = (r['채널']||'Meta') + ' / ' + r['캠페인명'];
+      if (!byCamp[k]) byCamp[k] = { spend:0, rev:0, pur:0, roas:0 };
+      byCamp[k].spend += r['비용']||0;
+      byCamp[k].rev   += r['매출']||0;
+      byCamp[k].pur   += r['구매']||0;
+    });
+    const topCamps = Object.entries(byCamp)
+      .map(([k,v]) => ({ name:k, ...v, roas: v.spend>0?v.rev/v.spend:0 }))
+      .sort((a,b)=>b.spend-a.spend).slice(0,5);
+
+    // Attribution 요약
+    const attrSummary = {};
+    attrData.forEach(r => {
+      const fc = r['퍼스트_소스']||'(direct)';
+      const lc = r['라스트_소스']||'(direct)';
+      if(!attrSummary[fc]) attrSummary[fc]={first:0,last:0};
+      if(!attrSummary[lc]) attrSummary[lc]={first:0,last:0};
+      attrSummary[fc].first++;
+      attrSummary[lc].last++;
+    });
+
+    const totalSpend = Object.values(byChannel).reduce((s,v)=>s+v.spend,0);
+    const totalRev   = Object.values(byChannel).reduce((s,v)=>s+v.rev,0);
+    const totalPur   = Object.values(byChannel).reduce((s,v)=>s+v.pur,0);
+    const totalRoas  = totalSpend>0 ? totalRev/totalSpend : 0;
+    const periodLabel = insightPeriod===1 ? '어제' : `최근 ${insightPeriod}일`;
+
+    const prompt = `당신은 AI코딩밸리 (구독형 AI·코딩 교육 플랫폼)의 퍼포먼스 마케터입니다.
+아래 광고 성과 데이터를 분석해서 한국어로 마케팅 액션 인사이트를 제안해주세요.
+
+## 분석 기간: ${periodLabel} (${from} ~ ${to})
+
+## 전체 성과 요약
+- 총 광고비: ${Math.round(totalSpend).toLocaleString('ko-KR')}원
+- 총 매출: ${Math.round(totalRev).toLocaleString('ko-KR')}원
+- 총 구매: ${totalPur}건
+- 전체 ROAS: ${(totalRoas*100).toFixed(0)}%
+
+## 채널별 성과
+${Object.entries(byChannel).map(([ch,v]) => {
+  const roas = v.spend>0?v.rev/v.spend:0;
+  return `- ${ch}: 광고비 ${Math.round(v.spend).toLocaleString()}원, 구매 ${v.pur}건, ROAS ${(roas*100).toFixed(0)}%${ch==='UAC'?`, 설치 ${v.install}건`:''}`;
+}).join('\n')}
+
+## 캠페인 TOP 5 (광고비 순)
+${topCamps.map((c,i) => `${i+1}. ${c.name}: 광고비 ${Math.round(c.spend).toLocaleString()}원, 구매 ${c.pur}건, ROAS ${(c.roas*100).toFixed(0)}%`).join('\n')}
+
+## 기여도 (Mixpanel 퍼스트터치 기준, ${attrData.length}건)
+${Object.entries(attrSummary).sort((a,b)=>b[1].first-a[1].first).slice(0,5).map(([src,v]) => `- ${src}: 퍼스트 ${v.first}건, 라스트 ${v.last}건`).join('\n')}
+
+---
+다음 형식으로 JSON만 반환해주세요 (마크다운 코드블록 없이):
+{
+  "summary": "2-3문장 전체 성과 요약",
+  "insights": [
+    {
+      "type": "positive|warning|action",
+      "title": "인사이트 제목",
+      "body": "상세 분석 내용 (2-3문장)",
+      "action": "→ 구체적인 실행 액션"
+    }
+  ]
+}
+인사이트는 4-6개, 데이터에 근거한 구체적인 액션 위주로 작성해주세요.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    // 렌더링
+    const typeStyle = { positive:'#1a7a52', warning:'#a05c10', action:'#3b6fd4' };
+    const typeLabel = { positive:'✅ 긍정 신호', warning:'⚠️ 주의 필요', action:'🎯 액션 제안' };
+
+    output.innerHTML = `
+      <div class="insight-content">
+        <div class="insight-period-badge">${periodLabel} 분석 · ${from}${from!==to?' ~ '+to:''}</div>
+        <div class="insight-section">
+          <div class="insight-section-title">종합 요약</div>
+          <div style="font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.8;padding:12px 16px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)">${result.summary}</div>
+        </div>
+        <div class="insight-section">
+          <div class="insight-section-title">마케팅 인사이트 & 액션 제안</div>
+          <div class="insight-cards">
+            ${result.insights.map(ins => `
+              <div class="insight-card" style="--ac:${typeStyle[ins.type]||'#3b6fd4'}">
+                <div style="font-family:var(--mono);font-size:9px;font-weight:700;color:${typeStyle[ins.type]||'#3b6fd4'};margin-bottom:5px;letter-spacing:.08em">${typeLabel[ins.type]||''}</div>
+                <div class="insight-card-head">${ins.title}</div>
+                <div class="insight-card-body">${ins.body}</div>
+                <div class="insight-card-action">${ins.action}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+  } catch(e) {
+    output.innerHTML = `<div class="insight-content"><div class="err">인사이트 생성 실패: ${e.message}</div></div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ AI 인사이트 생성';
+}
+
+function setAttrTouch(btn){
+  btn.closest('.preset-group, .sec-tabs').querySelectorAll('.tab-btn, .sec-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  attrTouch = btn.dataset.t;
+  renderAttribution();
+}
+
+// 소스를 채널로 정규화
+function normalizeChannel(src, med) {
+  src = (src||'').toLowerCase(); med = (med||'').toLowerCase();
+  if (src.includes('facebook') || src.includes('meta') || src === 'meta') return 'Meta';
+  if (src === 'google' && med === 'cpc') return 'Google (SA)';
+  if (src.includes('uac') || med.includes('uac')) return 'Google (UAC)';
+  if (src === 'google') return 'Google';
+  if (src === 'naver') return 'Naver';
+  if (src === '(direct)' || src === '') return 'Direct';
+  if (med === 'organic' || src.includes('organic')) return 'Organic';
+  return src || 'Direct';
+}
+
+function renderAttribution(){
+  if (!attrRaw || attrRaw.length === 0) return;
+
+  // 기간 필터 적용
+  const from = document.getElementById('d-from').value;
+  const to   = document.getElementById('d-to').value;
+  const filtered = from && to
+    ? attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to)
+    : attrRaw;
+
+  set('attr-cnt', filtered.length + '건');
+
+  const srcKey  = attrTouch === 'first' ? '퍼스트_소스'   : '라스트_소스';
+  const medKey  = attrTouch === 'first' ? '퍼스트_미디엄' : '라스트_미디엄';
+
+  // 채널별 집계
+  const chMap = {};
+  filtered.forEach(r => {
+    const ch = normalizeChannel(r[srcKey], r[medKey]);
+    if (!chMap[ch]) chMap[ch] = { count:0, rev:0 };
+    chMap[ch].count++;
+    chMap[ch].rev += r['매출']||0;
+  });
+
+  const chRows = Object.entries(chMap).sort((a,b)=>b[1].count-a[1].count);
+  const total  = filtered.length;
+
+  // 채널별 퍼스트 vs 라스트 비교 차트
+  const allChannels = [...new Set([
+    ...filtered.map(r => normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄'])),
+    ...filtered.map(r => normalizeChannel(r['라스트_소스'],  r['라스트_미디엄'])),
+  ])];
+
+  const firstMap = {}, lastMap = {};
+  filtered.forEach(r => {
+    const fc = normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄']);
+    const lc = normalizeChannel(r['라스트_소스'],  r['라스트_미디엄']);
+    firstMap[fc] = (firstMap[fc]||0) + 1;
+    lastMap[lc]  = (lastMap[lc] ||0) + 1;
+  });
+
+  const sortedCh = allChannels.sort((a,b)=>(firstMap[b]||0)-(firstMap[a]||0));
+
+  if (charts['attr-compare']) charts['attr-compare'].destroy();
+  charts['attr-compare'] = new Chart(document.getElementById('c-attr-compare'), {
+    type: 'bar',
+    data: {
+      labels: sortedCh,
+      datasets: [
+        {
+          label: '퍼스트터치',
+          data: sortedCh.map(ch => firstMap[ch]||0),
+          backgroundColor: 'rgba(59,111,212,.7)',
+          borderColor: '#3b6fd4', borderWidth: 1.5, borderRadius: 4,
+        },
+        {
+          label: '라스트터치',
+          data: sortedCh.map(ch => lastMap[ch]||0),
+          backgroundColor: 'rgba(192,57,43,.65)',
+          borderColor: '#c0392b', borderWidth: 1.5, borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels:{ color:'#5a5754', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
+        tooltip: {
+          backgroundColor:'#faf9f7', borderColor:'#d0cdc9', borderWidth:1,
+          titleColor:'#2a2826', bodyColor:'#5a5754',
+          titleFont:{family:'JetBrains Mono',size:10,weight:'700'},
+          bodyFont:{family:'JetBrains Mono',size:10},
+          callbacks:{ label: c => ` ${c.dataset.label}: ${c.parsed.y}건 (${(c.parsed.y/total*100).toFixed(1)}%)` }
+        }
+      },
+      scales:{
+        x:{ ticks:{color:'#2a2826',font:{family:'JetBrains Mono',size:10,weight:'600'}}, grid:{display:false} },
+        y:{ ticks:{color:'#8a8784',font:{family:'JetBrains Mono',size:9}}, grid:{color:'rgba(0,0,0,.06)'} },
+      }
+    }
+  });
+
+  // 플랫폼별 도넛 차트
+  const platMap = {};
+  filtered.forEach(r => {
+    const p = r['플랫폼'] || 'web';
+    platMap[p] = (platMap[p]||0) + 1;
+  });
+  const platLabels = Object.keys(platMap);
+  const platColors = { web:'#3b6fd4', mobile_web:'#34a853', app:'#f9a825', ios:'#9b59b6', android:'#e74c3c' };
+
+  if (charts['attr-platform']) charts['attr-platform'].destroy();
+  charts['attr-platform'] = new Chart(document.getElementById('c-attr-platform'), {
+    type: 'doughnut',
+    data: {
+      labels: platLabels,
+      datasets: [{
+        data: platLabels.map(p => platMap[p]),
+        backgroundColor: platLabels.map(p => platColors[p]||'#888'),
+        borderWidth: 2, borderColor: '#faf9f7',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position:'right', labels:{ color:'#5a5754', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
+        tooltip: {
+          backgroundColor:'#faf9f7', borderColor:'#d0cdc9', borderWidth:1,
+          titleColor:'#2a2826', bodyColor:'#5a5754',
+          titleFont:{family:'JetBrains Mono',size:10,weight:'700'},
+          bodyFont:{family:'JetBrains Mono',size:10},
+          callbacks:{ label: c => ` ${c.label}: ${c.parsed}건 (${(c.parsed/total*100).toFixed(1)}%)` }
+        }
+      }
+    }
+  });
+  // 소요일 분포
+  const daysBuckets = {'0일':0, '1-3일':0, '4-7일':0, '8-14일':0, '15일+':0};
+  filtered.forEach(r => {
+    const d = +r['소요일']||0;
+    if      (d === 0)  daysBuckets['0일']++;
+    else if (d <= 3)   daysBuckets['1-3일']++;
+    else if (d <= 7)   daysBuckets['4-7일']++;
+    else if (d <= 14)  daysBuckets['8-14일']++;
+    else               daysBuckets['15일+']++;
+  });
+
+  if (charts['attr-days']) charts['attr-days'].destroy();
+  charts['attr-days'] = new Chart(document.getElementById('c-attr-days'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(daysBuckets),
+      datasets: [{
+        label: '구매건수',
+        data:  Object.values(daysBuckets),
+        backgroundColor: ['#3b6fd4','#5b8dee','#7ba8f4','#9bbffa','#bbd5ff'],
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#faf9f7', borderColor: '#d0cdc9', borderWidth: 1,
+          titleColor: '#2a2826', bodyColor: '#5a5754',
+          titleFont: {family:'JetBrains Mono', size:10, weight:'700'},
+          bodyFont:  {family:'JetBrains Mono', size:10},
+          callbacks: {
+            label: c => ` ${c.parsed.y}건 (${(c.parsed.y/total*100).toFixed(1)}%)`
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{color:'#2a2826', font:{family:'JetBrains Mono',size:10}}, grid:{display:false} },
+        y: { ticks:{color:'#8a8784', font:{family:'JetBrains Mono',size:9}}, grid:{color:'rgba(0,0,0,.06)'} },
+      }
+    }
+  });
+
+  // 전환 경로 테이블
+  const pathMap = {};
+  filtered.forEach(r => {
+    const fCh = normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄']);
+    const lCh = normalizeChannel(r['라스트_소스'], r['라스트_미디엄']);
+    const key = fCh + '→' + lCh;
+    if (!pathMap[key]) pathMap[key] = { first:fCh, last:lCh, count:0, rev:0 };
+    pathMap[key].count++;
+    pathMap[key].rev += r['매출']||0;
+  });
+
+  const pathRows = Object.values(pathMap).sort((a,b)=>b.count-a.count).slice(0,10);
+
+  document.getElementById('attr-path-body').innerHTML = pathRows.map(r => {
+    const pct = (r.count/total*100).toFixed(1);
+    const same = r.first === r.last;
+    return `<tr>
+      <td style="font-weight:600;color:${chColors[r.first]||'#333'}">${r.first}</td>
+      <td style="font-weight:600;color:${chColors[r.last]||'#333'}">${same?'〃':r.last}</td>
+      <td class="r">${r.count}건</td>
+      <td class="r" title="${WFull(r.rev)}">${W(r.rev)}</td>
+      <td class="r">
+        <div class="bar-cell">
+          <span style="font-family:var(--mono);font-size:11px">${pct}%</span>
+          <div class="bar-bg"><div class="bar-fg" style="width:${pct}%;background:#3b6fd4"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 function showMsg(id,type,msg){
