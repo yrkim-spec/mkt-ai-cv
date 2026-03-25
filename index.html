@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI코딩밸리 ·  광고 대시보드</title>
+<title>AI코딩밸리 · Meta 광고 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -628,15 +628,171 @@ td.warn { color:var(--amber); font-weight:600; }
 <!-- MAIN -->
 <main>
 
-  <!-- 메인 탭: 광고성과 / 기여도 / 인사이트 -->
+  <!-- 메인 탭 -->
   <div class="main-tab-bar">
-    <button class="main-tab on" data-view="ads"     onclick="setMainView(this)">📊 광고 성과</button>
-    <button class="main-tab"   data-view="attr"    onclick="setMainView(this)">🔍 기여도 분석</button>
-    <button class="main-tab"   data-view="insight" onclick="setMainView(this)">✨ AI 인사이트</button>
+    <button class="main-tab on" data-view="overview" onclick="setMainView(this)">🔭 통합 보기</button>
+    <button class="main-tab"   data-view="ads"      onclick="setMainView(this)">📊 광고 성과</button>
+    <button class="main-tab"   data-view="attr"     onclick="setMainView(this)">🔍 기여도 분석</button>
+    <button class="main-tab"   data-view="insight"  onclick="setMainView(this)">✨ AI 인사이트</button>
   </div>
 
+  <!-- 공통 기간 필터 (모든 탭 공유) -->
+  <div class="filter-bar" id="global-filter-bar">
+    <span class="filter-label">기간</span>
+    <div class="preset-group" id="global-presets">
+      <button class="tab-btn" onclick="setPreset('today',this)">최신일</button>
+      <button class="tab-btn" onclick="setPreset('yesterday',this)">전전날</button>
+      <button class="tab-btn on" onclick="setPreset(7,this)">7일</button>
+      <button class="tab-btn" onclick="setPreset(14,this)">14일</button>
+      <button class="tab-btn" onclick="setPreset(30,this)">30일</button>
+      <button class="tab-btn" onclick="setPreset(90,this)">90일</button>
+      <button class="tab-btn" onclick="setPreset(0,this)">전체</button>
+    </div>
+    <div class="date-range">
+      <input type="date" id="d-from" onchange="clearPreset()" />
+      <span class="sep-text">—</span>
+      <input type="date" id="d-to" onchange="clearPreset()" />
+      <button class="btn-apply" onclick="applyRange()">적용</button>
+    </div>
+  </div>
+
+  <!-- 통합 보기 뷰 -->
+  <div id="view-overview">
+
+    <!-- KPI -->
+    <div class="kpi-strip">
+      <div class="kpi" style="--ac:#3b6fd4">
+        <div class="kpi-lbl">광고비</div>
+        <div class="kpi-val" id="k-spend">—</div>
+        <div class="kpi-note" id="k-spend-n"></div>
+      </div>
+      <div class="kpi" style="--ac:#1a7a52">
+        <div class="kpi-lbl">매출</div>
+        <div class="kpi-val" id="k-rev">—</div>
+        <div class="kpi-note"></div>
+      </div>
+      <div class="kpi" style="--ac:#a05c10">
+        <div class="kpi-lbl">ROAS</div>
+        <div class="kpi-val" id="k-roas">—</div>
+        <div class="kpi-note" id="k-roas-n"></div>
+      </div>
+      <div class="kpi" style="--ac:#c0392b">
+        <div class="kpi-lbl">구매</div>
+        <div class="kpi-val" id="k-pur">—</div>
+        <div class="kpi-note"></div>
+      </div>
+      <div class="kpi" style="--ac:#6d28d9">
+        <div class="kpi-lbl">클릭</div>
+        <div class="kpi-val" id="k-clk">—</div>
+        <div class="kpi-note" id="k-ctr-n"></div>
+      </div>
+      <div class="kpi" style="--ac:#6b7280">
+        <div class="kpi-lbl">CPC</div>
+        <div class="kpi-val" id="k-cpc">—</div>
+        <div class="kpi-note"></div>
+      </div>
+    </div>
+
+    <!-- 채널 비교 카드 -->
+    <div class="channel-compare" id="channel-compare">
+      <div class="ch-card" data-ch="Meta" onclick="setChannelByName('Meta');setMainView(document.querySelector('.main-tab[data-view=ads]'))">
+        <div class="ch-card-head">
+          <span class="ch-card-dot" style="background:#1877f2"></span>
+          <span class="ch-card-name">Meta</span>
+          <span class="ch-card-arrow">→</span>
+        </div>
+        <div class="ch-card-kpis">
+          <div class="ch-kpi"><div class="ch-kpi-lbl">광고비</div><div class="ch-kpi-val" id="cmp-meta-spend">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">ROAS</div><div class="ch-kpi-val" id="cmp-meta-roas">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">구매</div><div class="ch-kpi-val" id="cmp-meta-pur">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">CPC</div><div class="ch-kpi-val" id="cmp-meta-cpc">—</div></div>
+        </div>
+      </div>
+      <div class="ch-card" data-ch="UAC" onclick="setChannelByName('UAC');setMainView(document.querySelector('.main-tab[data-view=ads]'))">
+        <div class="ch-card-head">
+          <span class="ch-card-dot" style="background:#34a853"></span>
+          <span class="ch-card-name">Google UAC</span>
+          <span class="ch-card-arrow">→</span>
+        </div>
+        <div class="ch-card-kpis">
+          <div class="ch-kpi"><div class="ch-kpi-lbl">광고비</div><div class="ch-kpi-val" id="cmp-uac-spend">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">ROAS</div><div class="ch-kpi-val" id="cmp-uac-roas">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">구매</div><div class="ch-kpi-val" id="cmp-uac-pur">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">설치</div><div class="ch-kpi-val" id="cmp-uac-install">—</div></div>
+        </div>
+      </div>
+      <div class="ch-card" data-ch="SA" onclick="setChannelByName('SA');setMainView(document.querySelector('.main-tab[data-view=ads]'))">
+        <div class="ch-card-head">
+          <span class="ch-card-dot" style="background:#fbbc04"></span>
+          <span class="ch-card-name">Google SA</span>
+          <span class="ch-card-arrow">→</span>
+        </div>
+        <div class="ch-card-kpis">
+          <div class="ch-kpi"><div class="ch-kpi-lbl">광고비</div><div class="ch-kpi-val" id="cmp-sa-spend">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">ROAS</div><div class="ch-kpi-val" id="cmp-sa-roas">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">구매</div><div class="ch-kpi-val" id="cmp-sa-pur">—</div></div>
+          <div class="ch-kpi"><div class="ch-kpi-lbl">CPC</div><div class="ch-kpi-val" id="cmp-sa-cpc">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 트렌드 차트 (미니) -->
+    <div class="chart-2col" style="margin-bottom:12px">
+      <div class="chart-box">
+        <div class="chart-title">광고비 vs 매출</div>
+        <div class="chart-area"><canvas id="c-spend"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">ROAS vs 구매건수</div>
+        <div class="chart-area"><canvas id="c-roas"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 기여도 미니 (퍼스트터치 소스 기준) -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">기여도 요약 (퍼스트터치 · 소스)</span>
+        <button class="btn-sm" style="margin-left:auto" onclick="setMainView(document.querySelector('.main-tab[data-view=attr]'))">상세 보기 →</button>
+      </div>
+      <div class="chart-box">
+        <div class="chart-area" style="height:200px"><canvas id="c-overview-attr"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 광고비 vs 기여도 통합 비교 -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">채널별 광고비 vs 기여도 비교</span>
+        <span class="sec-badge">예산 효율 진단</span>
+      </div>
+      <div class="panel">
+        <div class="tbl-scroll">
+          <table id="overview-attr-table">
+            <thead>
+              <tr>
+                <th>채널</th>
+                <th class="r">광고비</th>
+                <th class="r">ROAS</th>
+                <th class="r">광고 구매</th>
+                <th class="r">퍼스트터치</th>
+                <th class="r">라스트터치</th>
+                <th class="r">기여도 갭 ⓘ</th>
+                <th>해석</th>
+              </tr>
+            </thead>
+            <tbody id="overview-attr-body"></tbody>
+          </table>
+        </div>
+        <div style="padding:10px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);border-top:1px solid var(--line)">
+          ⓘ 기여도 갭 = 퍼스트터치 - 라스트터치 &nbsp;·&nbsp; 양수: 발견 역할 강함 &nbsp;·&nbsp; 음수: 전환 역할 강함
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /view-overview -->
+
   <!-- 광고성과 뷰 -->
-  <div id="view-ads">
+  <div id="view-ads" style="display:none">
   <div class="channel-bar">
     <button class="channel-btn on" data-ch="all"  onclick="setChannel(this)">
       <span class="ch-icon">◈</span> 전체
@@ -869,33 +1025,22 @@ td.warn { color:var(--amber); font-weight:600; }
   </div><!-- /view-ads -->
   <div id="view-attr" style="display:none">
 
-    <!-- 기여도 필터 바 -->
-    <div class="filter-bar" style="margin-bottom:12px">
-      <!-- 기간 -->
-      <span class="filter-label">기간</span>
-      <div class="preset-group">
-        <button class="tab-btn on" data-ap="7"  onclick="setAttrPeriod(this)">7일</button>
-        <button class="tab-btn"   data-ap="14" onclick="setAttrPeriod(this)">14일</button>
-        <button class="tab-btn"   data-ap="30" onclick="setAttrPeriod(this)">30일</button>
-        <button class="tab-btn"   data-ap="0"  onclick="setAttrPeriod(this)">전체</button>
-      </div>
-
+    <!-- 기여도 필터 (기간은 상단 공유 필터 사용) -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px">
       <!-- 터치 -->
-      <span class="filter-label" style="margin-left:8px">터치</span>
+      <span class="filter-label">터치</span>
       <div class="preset-group">
-        <button class="tab-btn on" data-t="first" onclick="setAttrTouch(this)">퍼스트</button>
-        <button class="tab-btn"   data-t="last"  onclick="setAttrTouch(this)">라스트</button>
+        <button class="tab-btn on" data-t="first" onclick="setAttrTouch(this)">퍼스트터치</button>
+        <button class="tab-btn"   data-t="last"  onclick="setAttrTouch(this)">라스트터치</button>
       </div>
-
       <!-- 차원 -->
-      <span class="filter-label" style="margin-left:8px">차원</span>
+      <span class="filter-label">차원</span>
       <div class="preset-group">
         <button class="tab-btn on" data-dim="source"   onclick="setAttrDim(this)">소스</button>
         <button class="tab-btn"   data-dim="medium"   onclick="setAttrDim(this)">미디엄</button>
         <button class="tab-btn"   data-dim="campaign" onclick="setAttrDim(this)">캠페인</button>
         <button class="tab-btn"   data-dim="content"  onclick="setAttrDim(this)">콘텐츠</button>
       </div>
-
       <span class="sec-badge" style="margin-left:auto" id="attr-cnt"></span>
     </div>
 
@@ -1154,7 +1299,7 @@ function applyRange(){
   render();
 }
 
-function render(){ renderKPI(); renderCharts(); renderTrendTable(); renderFunnel(); renderPerfTable(); renderChannelCompare(); renderAttribution(); }
+function render(){ renderKPI(); renderCharts(); renderTrendTable(); renderFunnel(); renderPerfTable(); renderChannelCompare(); renderAttribution(); renderOverviewAttrTable(); }
 
 function renderKPI(){
   const spend=Σ(view,'비용'), rev=Σ(view,'매출');
@@ -1417,13 +1562,12 @@ function setMainView(btn){
   document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const v = btn.dataset.view;
-  document.getElementById('view-ads').style.display     = v==='ads'     ? '' : 'none';
-  document.getElementById('view-attr').style.display    = v==='attr'    ? '' : 'none';
-  document.getElementById('view-insight').style.display = v==='insight' ? '' : 'none';
-  if (v==='attr') {
-    // 기여도 탭 클릭 시 현재 기간 필터 기준으로 렌더링
-    setTimeout(()=>renderAttribution(), 50);
-  }
+  document.getElementById('view-overview').style.display  = v==='overview' ? '' : 'none';
+  document.getElementById('view-ads').style.display       = v==='ads'      ? '' : 'none';
+  document.getElementById('view-attr').style.display      = v==='attr'     ? '' : 'none';
+  document.getElementById('view-insight').style.display   = v==='insight'  ? '' : 'none';
+  if (v==='attr')     setTimeout(()=>renderAttribution(), 50);
+  if (v==='overview') setTimeout(()=>renderOverviewAttrTable(), 50);
 }
 
 function setInsightPeriod(btn){
@@ -1568,13 +1712,10 @@ function normalizeChannel(src, med) {
 function renderAttribution(){
   if (!attrRaw || attrRaw.length === 0) return;
 
-  // 기간 필터 (attrPeriod 기준)
-  const base = new Date(); base.setDate(base.getDate()-1);
-  const fmt  = d => d.toISOString().slice(0,10);
-  const to   = fmt(base);
-  const from = attrPeriod === 0
-    ? (attrRaw.map(r=>r['날짜']).filter(Boolean).sort()[0] || fmt(base))
-    : (() => { const d=new Date(base); d.setDate(d.getDate()-(attrPeriod-1)); return fmt(d); })();
+  // 공유 기간 필터 사용
+  const from = document.getElementById('d-from').value;
+  const to   = document.getElementById('d-to').value;
+  if (!from || !to) return;
 
   const filtered = attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to);
   const total = filtered.length;
@@ -1740,6 +1881,119 @@ function renderAttribution(){
       </td>
     </tr>`;
   }).join('');
+}
+
+// 통합 보기: 광고비 vs 기여도 비교 테이블
+function renderOverviewAttrTable(){
+  const from = document.getElementById('d-from').value;
+  const to   = document.getElementById('d-to').value;
+  if (!from || !to) return;
+
+  const filteredAttr = attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to);
+  const filteredAds  = view; // 현재 기간 필터된 광고 데이터
+
+  // 채널 매핑 (소스 기준)
+  const srcToChannel = src => {
+    src = (src||'').toLowerCase();
+    if (src.includes('meta') || src.includes('facebook')) return 'Meta';
+    if (src === 'google') return 'Google SA';
+    if (src === 'naver') return 'Naver';
+    if (src === '(direct)' || src === '') return 'Direct';
+    return src;
+  };
+
+  // 광고 데이터 채널별 집계
+  const adsMap = {};
+  filteredAds.forEach(r => {
+    const ch = r['채널'] || 'Meta';
+    if (!adsMap[ch]) adsMap[ch] = { spend:0, rev:0, pur:0 };
+    adsMap[ch].spend += r['비용']||0;
+    adsMap[ch].rev   += r['매출']||0;
+    adsMap[ch].pur   += r['구매']||0;
+  });
+
+  // 기여도 집계
+  const firstMap = {}, lastMap = {};
+  filteredAttr.forEach(r => {
+    const fc = srcToChannel(r['퍼스트_소스']);
+    const lc = srcToChannel(r['라스트_소스']);
+    firstMap[fc] = (firstMap[fc]||0) + 1;
+    lastMap[lc]  = (lastMap[lc] ||0) + 1;
+  });
+
+  // 모든 채널 합치기
+  const allChs = [...new Set([
+    ...Object.keys(adsMap),
+    ...Object.keys(firstMap),
+    ...Object.keys(lastMap),
+  ])];
+
+  const rows = allChs.map(ch => ({
+    ch,
+    spend:  adsMap[ch]?.spend || 0,
+    roas:   (adsMap[ch]?.spend||0) > 0 ? (adsMap[ch]?.rev||0) / (adsMap[ch]?.spend||0) : 0,
+    adsPur: adsMap[ch]?.pur || 0,
+    first:  firstMap[ch] || 0,
+    last:   lastMap[ch]  || 0,
+    gap:    (firstMap[ch]||0) - (lastMap[ch]||0),
+  })).sort((a,b) => b.spend - a.spend);
+
+  const interprete = (row) => {
+    if (row.spend === 0 && row.first > 0) return { txt:'💡 무광고 유입', color:'#1a7a52' };
+    if (row.spend > 0 && row.first === 0 && row.last === 0) return { txt:'⚠️ 기여도 미측정', color:'#a05c10' };
+    if (row.gap > 2)  return { txt:'🔍 상위 퍼널 강함', color:'#3b6fd4' };
+    if (row.gap < -2) return { txt:'💰 전환 직전 강함', color:'#1a7a52' };
+    if (row.roas > 2) return { txt:'✅ 효율 우수', color:'#1a7a52' };
+    if (row.roas < 0.5 && row.spend > 100000) return { txt:'⚠️ 예산 재검토', color:'#c0392b' };
+    return { txt:'—', color:'#8a8784' };
+  };
+
+  const tbody = document.getElementById('overview-attr-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = rows.map(r => {
+    const int = interprete(r);
+    const gapColor = r.gap > 0 ? '#3b6fd4' : r.gap < 0 ? '#1a7a52' : '#8a8784';
+    const gapTxt   = r.gap > 0 ? `+${r.gap}` : String(r.gap);
+    return `<tr>
+      <td style="font-weight:700">${r.ch}</td>
+      <td class="r" title="${WFull(r.spend)}">${r.spend>0?W(r.spend):'—'}</td>
+      <td class="r ${r.roas>=2?'good':r.roas>0&&r.roas<0.5?'warn':''}">${r.spend>0?Rpct(r.roas):'—'}</td>
+      <td class="r">${r.adsPur>0?r.adsPur+'건':'—'}</td>
+      <td class="r" style="color:#3b6fd4;font-weight:600">${r.first>0?r.first+'건':'—'}</td>
+      <td class="r" style="color:#c0392b;font-weight:600">${r.last>0?r.last+'건':'—'}</td>
+      <td class="r" style="color:${gapColor};font-weight:700">${r.first>0||r.last>0?gapTxt:'—'}</td>
+      <td style="font-family:var(--mono);font-size:10px;font-weight:600;color:${int.color}">${int.txt}</td>
+    </tr>`;
+  }).join('');
+
+  // 오버뷰 기여도 미니차트도 업데이트
+  const sortedFirst = Object.entries(firstMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if (charts['overview-attr']) charts['overview-attr'].destroy();
+  const canvasEl = document.getElementById('c-overview-attr');
+  if (canvasEl && sortedFirst.length > 0) {
+    charts['overview-attr'] = new Chart(canvasEl, {
+      type: 'bar',
+      data: {
+        labels: sortedFirst.map(([k])=>k),
+        datasets: [
+          { label:'퍼스트터치', data:sortedFirst.map(([k])=>firstMap[k]||0), backgroundColor:'rgba(59,111,212,.75)', borderColor:'#3b6fd4', borderWidth:1.5, borderRadius:4 },
+          { label:'라스트터치', data:sortedFirst.map(([k])=>lastMap[k]||0),  backgroundColor:'rgba(192,57,43,.65)',  borderColor:'#c0392b', borderWidth:1.5, borderRadius:4 },
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{color:'#5a5754',font:{family:'JetBrains Mono',size:10},boxWidth:10}},
+          tooltip:{backgroundColor:'#faf9f7',borderColor:'#d0cdc9',borderWidth:1,titleColor:'#2a2826',bodyColor:'#5a5754',titleFont:{family:'JetBrains Mono',size:10,weight:'700'},bodyFont:{family:'JetBrains Mono',size:10}}
+        },
+        scales:{
+          x:{ticks:{color:'#2a2826',font:{family:'JetBrains Mono',size:10,weight:'600'}},grid:{display:false}},
+          y:{ticks:{color:'#8a8784',font:{family:'JetBrains Mono',size:9}},grid:{color:'rgba(0,0,0,.06)'}},
+        }
+      }
+    });
+  }
 }
 
 function showMsg(id,type,msg){
