@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI코딩밸리 · 광고 대시보드</title>
+<title>AI코딩밸리 ·  광고 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -869,22 +869,41 @@ td.warn { color:var(--amber); font-weight:600; }
   </div><!-- /view-ads -->
   <div id="view-attr" style="display:none">
 
-    <!-- 기여도 필터 -->
+    <!-- 기여도 필터 바 -->
     <div class="filter-bar" style="margin-bottom:12px">
-      <span class="filter-label">터치</span>
+      <!-- 기간 -->
+      <span class="filter-label">기간</span>
       <div class="preset-group">
-        <button class="tab-btn on" data-t="first" onclick="setAttrTouch(this)">퍼스트터치</button>
-        <button class="tab-btn"   data-t="last"  onclick="setAttrTouch(this)">라스트터치</button>
+        <button class="tab-btn on" data-ap="7"  onclick="setAttrPeriod(this)">7일</button>
+        <button class="tab-btn"   data-ap="14" onclick="setAttrPeriod(this)">14일</button>
+        <button class="tab-btn"   data-ap="30" onclick="setAttrPeriod(this)">30일</button>
+        <button class="tab-btn"   data-ap="0"  onclick="setAttrPeriod(this)">전체</button>
       </div>
-      <span class="sec-badge" style="margin-left:12px" id="attr-cnt"></span>
+
+      <!-- 터치 -->
+      <span class="filter-label" style="margin-left:8px">터치</span>
+      <div class="preset-group">
+        <button class="tab-btn on" data-t="first" onclick="setAttrTouch(this)">퍼스트</button>
+        <button class="tab-btn"   data-t="last"  onclick="setAttrTouch(this)">라스트</button>
+      </div>
+
+      <!-- 차원 -->
+      <span class="filter-label" style="margin-left:8px">차원</span>
+      <div class="preset-group">
+        <button class="tab-btn on" data-dim="source"   onclick="setAttrDim(this)">소스</button>
+        <button class="tab-btn"   data-dim="medium"   onclick="setAttrDim(this)">미디엄</button>
+        <button class="tab-btn"   data-dim="campaign" onclick="setAttrDim(this)">캠페인</button>
+        <button class="tab-btn"   data-dim="content"  onclick="setAttrDim(this)">콘텐츠</button>
+      </div>
+
+      <span class="sec-badge" style="margin-left:auto" id="attr-cnt"></span>
     </div>
 
-    <!-- 채널별 퍼스트 vs 라스트 비교 (핵심) -->
+    <!-- 채널별 퍼스트 vs 라스트 비교 -->
     <div class="section">
-      <div class="sec-head"><span class="sec-title">채널별 퍼스트 vs 라스트터치 비교</span></div>
+      <div class="sec-head"><span class="sec-title">퍼스트 vs 라스트터치 비교</span></div>
       <div class="chart-box" style="margin-bottom:12px">
-        <div class="chart-title">퍼스트터치 vs 라스트터치 구매건수</div>
-        <div class="chart-area" style="height:260px"><canvas id="c-attr-compare"></canvas></div>
+        <div class="chart-area" style="height:280px"><canvas id="c-attr-compare"></canvas></div>
       </div>
     </div>
 
@@ -912,18 +931,8 @@ td.warn { color:var(--amber); font-weight:600; }
       <div class="section" style="margin-bottom:0">
         <div class="sec-head"><span class="sec-title">플랫폼별 기여도</span></div>
         <div class="chart-box">
-          <div class="chart-title">Web vs App 구매 비중</div>
           <div class="chart-area"><canvas id="c-attr-platform"></canvas></div>
         </div>
-      </div>
-    </div>
-
-    <!-- 소요일 분포 -->
-    <div class="section">
-      <div class="sec-head"><span class="sec-title">구매까지 소요일 분포</span></div>
-      <div class="chart-box">
-        <div class="chart-title">가입 → 구매 소요일</div>
-        <div class="chart-area"><canvas id="c-attr-days"></canvas></div>
       </div>
     </div>
 
@@ -990,7 +999,7 @@ let trendSort={key:'spend',asc:false};
 let campSort={key:'spend',num:true,asc:false};
 let adSort={key:'spend',num:true,asc:false};
 let charts={};
-let attrRaw=[], attrTouch='first';
+let attrRaw=[], attrTouch='first', attrPeriod=7, attrDim='source';
 
 (async()=>{ const url=getUrl(); if(!url){openModal();return;} await load(url); })();
 setInterval(()=>reload(), 60*60*1000);
@@ -1522,8 +1531,22 @@ function copyPrompt(el){
   });
 }
 
+function setAttrPeriod(btn){
+  btn.closest('.preset-group').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  attrPeriod = parseInt(btn.dataset.ap);
+  renderAttribution();
+}
+
+function setAttrDim(btn){
+  btn.closest('.preset-group').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  attrDim = btn.dataset.dim;
+  renderAttribution();
+}
+
 function setAttrTouch(btn){
-  btn.closest('.preset-group, .sec-tabs').querySelectorAll('.tab-btn, .sec-tab').forEach(b=>b.classList.remove('on'));
+  btn.closest('.preset-group').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   attrTouch = btn.dataset.t;
   renderAttribution();
@@ -1545,61 +1568,60 @@ function normalizeChannel(src, med) {
 function renderAttribution(){
   if (!attrRaw || attrRaw.length === 0) return;
 
-  // 기간 필터 적용
-  const from = document.getElementById('d-from').value;
-  const to   = document.getElementById('d-to').value;
-  const filtered = from && to
-    ? attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to)
-    : attrRaw;
+  // 기간 필터 (attrPeriod 기준)
+  const base = new Date(); base.setDate(base.getDate()-1);
+  const fmt  = d => d.toISOString().slice(0,10);
+  const to   = fmt(base);
+  const from = attrPeriod === 0
+    ? (attrRaw.map(r=>r['날짜']).filter(Boolean).sort()[0] || fmt(base))
+    : (() => { const d=new Date(base); d.setDate(d.getDate()-(attrPeriod-1)); return fmt(d); })();
 
-  set('attr-cnt', filtered.length + '건');
+  const filtered = attrRaw.filter(r => r['날짜'] >= from && r['날짜'] <= to);
+  const total = filtered.length;
+  set('attr-cnt', total + '건');
 
-  const srcKey  = attrTouch === 'first' ? '퍼스트_소스'   : '라스트_소스';
-  const medKey  = attrTouch === 'first' ? '퍼스트_미디엄' : '라스트_미디엄';
+  // 차원 키 결정
+  const dimKeys = {
+    source:   { first:'퍼스트_소스',    last:'라스트_소스'    },
+    medium:   { first:'퍼스트_미디엄',  last:'라스트_미디엄'  },
+    campaign: { first:'퍼스트_캠페인',  last:'라스트_캠페인'  },
+    content:  { first:'퍼스트_콘텐츠',  last:'라스트_콘텐츠'  },
+  };
+  const fKey = dimKeys[attrDim].first;
+  const lKey = dimKeys[attrDim].last;
 
-  // 채널별 집계
-  const chMap = {};
-  filtered.forEach(r => {
-    const ch = normalizeChannel(r[srcKey], r[medKey]);
-    if (!chMap[ch]) chMap[ch] = { count:0, rev:0 };
-    chMap[ch].count++;
-    chMap[ch].rev += r['매출']||0;
-  });
-
-  const chRows = Object.entries(chMap).sort((a,b)=>b[1].count-a[1].count);
-  const total  = filtered.length;
-
-  // 채널별 퍼스트 vs 라스트 비교 차트
-  const allChannels = [...new Set([
-    ...filtered.map(r => normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄'])),
-    ...filtered.map(r => normalizeChannel(r['라스트_소스'],  r['라스트_미디엄'])),
-  ])];
-
+  // 퍼스트 vs 라스트 집계
   const firstMap = {}, lastMap = {};
   filtered.forEach(r => {
-    const fc = normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄']);
-    const lc = normalizeChannel(r['라스트_소스'],  r['라스트_미디엄']);
-    firstMap[fc] = (firstMap[fc]||0) + 1;
-    lastMap[lc]  = (lastMap[lc] ||0) + 1;
+    const fv = r[fKey] || '(none)';
+    const lv = r[lKey] || '(none)';
+    firstMap[fv] = (firstMap[fv]||0) + 1;
+    lastMap[lv]  = (lastMap[lv] ||0) + 1;
   });
 
-  const sortedCh = allChannels.sort((a,b)=>(firstMap[b]||0)-(firstMap[a]||0));
+  const allKeys = [...new Set([...Object.keys(firstMap), ...Object.keys(lastMap)])]
+    .sort((a,b)=>(firstMap[b]||0)-(firstMap[a]||0))
+    .slice(0,10); // TOP 10만
 
+  // 차트 색상 팔레트
+  const palette = ['#3b6fd4','#c0392b','#34a853','#f9a825','#9b59b6','#e67e22','#1abc9c','#e74c3c','#2980b9','#27ae60'];
+
+  // 비교 차트 (숫자 라벨 포함)
   if (charts['attr-compare']) charts['attr-compare'].destroy();
   charts['attr-compare'] = new Chart(document.getElementById('c-attr-compare'), {
     type: 'bar',
     data: {
-      labels: sortedCh,
+      labels: allKeys,
       datasets: [
         {
           label: '퍼스트터치',
-          data: sortedCh.map(ch => firstMap[ch]||0),
-          backgroundColor: 'rgba(59,111,212,.7)',
+          data: allKeys.map(k => firstMap[k]||0),
+          backgroundColor: 'rgba(59,111,212,.75)',
           borderColor: '#3b6fd4', borderWidth: 1.5, borderRadius: 4,
         },
         {
           label: '라스트터치',
-          data: sortedCh.map(ch => lastMap[ch]||0),
+          data: allKeys.map(k => lastMap[k]||0),
           backgroundColor: 'rgba(192,57,43,.65)',
           borderColor: '#c0392b', borderWidth: 1.5, borderRadius: 4,
         }
@@ -1614,17 +1636,39 @@ function renderAttribution(){
           titleColor:'#2a2826', bodyColor:'#5a5754',
           titleFont:{family:'JetBrains Mono',size:10,weight:'700'},
           bodyFont:{family:'JetBrains Mono',size:10},
-          callbacks:{ label: c => ` ${c.dataset.label}: ${c.parsed.y}건 (${(c.parsed.y/total*100).toFixed(1)}%)` }
-        }
+          callbacks:{ label: c => ` ${c.dataset.label}: ${c.parsed.y}건 (${total>0?(c.parsed.y/total*100).toFixed(1):0}%)` }
+        },
+        // 막대 위에 숫자 표시 (datalabels 없이 직접 구현)
+        afterDraw: undefined,
       },
       scales:{
-        x:{ ticks:{color:'#2a2826',font:{family:'JetBrains Mono',size:10,weight:'600'}}, grid:{display:false} },
+        x:{ ticks:{color:'#2a2826',font:{family:'JetBrains Mono',size:10,weight:'600'},maxRotation:30}, grid:{display:false} },
         y:{ ticks:{color:'#8a8784',font:{family:'JetBrains Mono',size:9}}, grid:{color:'rgba(0,0,0,.06)'} },
+      },
+      animation: {
+        onComplete: function() {
+          // 막대 위에 숫자 직접 그리기
+          const chart = this;
+          const ctx = chart.ctx;
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          chart.data.datasets.forEach((dataset, i) => {
+            const meta = chart.getDatasetMeta(i);
+            meta.data.forEach((bar, j) => {
+              const val = dataset.data[j];
+              if (val > 0) {
+                ctx.fillStyle = i===0 ? '#3b6fd4' : '#c0392b';
+                ctx.fillText(val + '건', bar.x, bar.y - 3);
+              }
+            });
+          });
+        }
       }
     }
   });
 
-  // 플랫폼별 도넛 차트
+  // 플랫폼 도넛 차트
   const platMap = {};
   filtered.forEach(r => {
     const p = r['플랫폼'] || 'web';
@@ -1647,86 +1691,51 @@ function renderAttribution(){
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position:'right', labels:{ color:'#5a5754', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
+        legend: { position:'right', labels:{ color:'#5a5754', font:{family:'JetBrains Mono',size:10}, boxWidth:12,
+          generateLabels: chart => chart.data.labels.map((l,i) => ({
+            text: `${l}: ${chart.data.datasets[0].data[i]}건`,
+            fillStyle: chart.data.datasets[0].backgroundColor[i],
+            index: i,
+          }))
+        }},
         tooltip: {
           backgroundColor:'#faf9f7', borderColor:'#d0cdc9', borderWidth:1,
           titleColor:'#2a2826', bodyColor:'#5a5754',
           titleFont:{family:'JetBrains Mono',size:10,weight:'700'},
           bodyFont:{family:'JetBrains Mono',size:10},
-          callbacks:{ label: c => ` ${c.label}: ${c.parsed}건 (${(c.parsed/total*100).toFixed(1)}%)` }
+          callbacks:{ label: c => ` ${c.label}: ${c.parsed}건 (${total>0?(c.parsed/total*100).toFixed(1):0}%)` }
         }
       }
     }
   });
-  // 소요일 분포
-  const daysBuckets = {'0일':0, '1-3일':0, '4-7일':0, '8-14일':0, '15일+':0};
-  filtered.forEach(r => {
-    const d = +r['소요일']||0;
-    if      (d === 0)  daysBuckets['0일']++;
-    else if (d <= 3)   daysBuckets['1-3일']++;
-    else if (d <= 7)   daysBuckets['4-7일']++;
-    else if (d <= 14)  daysBuckets['8-14일']++;
-    else               daysBuckets['15일+']++;
-  });
 
-  if (charts['attr-days']) charts['attr-days'].destroy();
-  charts['attr-days'] = new Chart(document.getElementById('c-attr-days'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(daysBuckets),
-      datasets: [{
-        label: '구매건수',
-        data:  Object.values(daysBuckets),
-        backgroundColor: ['#3b6fd4','#5b8dee','#7ba8f4','#9bbffa','#bbd5ff'],
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#faf9f7', borderColor: '#d0cdc9', borderWidth: 1,
-          titleColor: '#2a2826', bodyColor: '#5a5754',
-          titleFont: {family:'JetBrains Mono', size:10, weight:'700'},
-          bodyFont:  {family:'JetBrains Mono', size:10},
-          callbacks: {
-            label: c => ` ${c.parsed.y}건 (${(c.parsed.y/total*100).toFixed(1)}%)`
-          }
-        }
-      },
-      scales: {
-        x: { ticks:{color:'#2a2826', font:{family:'JetBrains Mono',size:10}}, grid:{display:false} },
-        y: { ticks:{color:'#8a8784', font:{family:'JetBrains Mono',size:9}}, grid:{color:'rgba(0,0,0,.06)'} },
-      }
-    }
-  });
-
-  // 전환 경로 테이블
+  // 전환 경로 테이블 (현재 차원 기준)
   const pathMap = {};
   filtered.forEach(r => {
-    const fCh = normalizeChannel(r['퍼스트_소스'], r['퍼스트_미디엄']);
-    const lCh = normalizeChannel(r['라스트_소스'], r['라스트_미디엄']);
-    const key = fCh + '→' + lCh;
-    if (!pathMap[key]) pathMap[key] = { first:fCh, last:lCh, count:0, rev:0 };
+    const fv = r[fKey] || '(none)';
+    const lv = r[lKey] || '(none)';
+    const key = fv + '→' + lv;
+    if (!pathMap[key]) pathMap[key] = { first:fv, last:lv, count:0, rev:0 };
     pathMap[key].count++;
     pathMap[key].rev += r['매출']||0;
   });
 
   const pathRows = Object.values(pathMap).sort((a,b)=>b.count-a.count).slice(0,10);
+  const maxCount = pathRows[0]?.count || 1;
 
-  document.getElementById('attr-path-body').innerHTML = pathRows.map(r => {
-    const pct = (r.count/total*100).toFixed(1);
+  document.getElementById('attr-path-body').innerHTML = pathRows.map((r,i) => {
+    const pct  = total>0 ? (r.count/total*100).toFixed(1) : '0.0';
     const same = r.first === r.last;
+    const color = palette[i % palette.length];
     return `<tr>
-      <td style="font-weight:600;color:${chColors[r.first]||'#333'}">${r.first}</td>
-      <td style="font-weight:600;color:${chColors[r.last]||'#333'}">${same?'〃':r.last}</td>
-      <td class="r">${r.count}건</td>
+      <td class="dim" title="${r.first}" style="max-width:140px">${r.first}</td>
+      <td class="dim" title="${r.last}"  style="max-width:140px">${same?'〃':r.last}</td>
+      <td class="r" style="font-weight:700">${r.count}건</td>
       <td class="r" title="${WFull(r.rev)}">${W(r.rev)}</td>
       <td class="r">
         <div class="bar-cell">
           <span style="font-family:var(--mono);font-size:11px">${pct}%</span>
-          <div class="bar-bg"><div class="bar-fg" style="width:${pct}%;background:#3b6fd4"></div></div>
+          <div class="bar-bg"><div class="bar-fg" style="width:${(r.count/maxCount*100).toFixed(1)}%;background:${color}"></div></div>
         </div>
       </td>
     </tr>`;
